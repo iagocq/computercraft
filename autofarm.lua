@@ -30,7 +30,7 @@ Fuel = {
 Turn = {
     right = "minecraft:stone_slab",
     left = "minecraft:wooden_slab",
-    reset = "minecraft:stone"
+    reset = "EnderStorage:enderChest"
 }
 
 Movement = {
@@ -50,8 +50,8 @@ end
 local function findItem(mod, name)
     local slot = turtle.getSelectedSlot()
 
-    for i = 1, 16, 1 do
-        turtle.select(i)
+    for i = 0, 15, 1 do
+        turtle.select((slot + i - 1) % 16 + 1)
         local data = turtle.getItemDetail()
         if data then
             local rmod, rname = splitName(data.name)
@@ -137,7 +137,14 @@ local function replenishLava()
     end
 end
 
-function step()
+local function emptyInventory()
+    for i = 3, 16, 1 do
+        turtle.select(i)
+        turtle.dropDown()
+    end
+end
+
+local function step()
     turtle.forward()
     Movement.x = Movement.x + VelocityX
     local ok, data = turtle.inspectDown()
@@ -160,6 +167,7 @@ function step()
         turtle.turnLeft()
         Resetting = true
         VelocityX = -VelocityX
+        emptyInventory()
     end
 end
 
