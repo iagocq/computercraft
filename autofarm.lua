@@ -5,11 +5,12 @@ local function h(mod, metadata)
     }
 end
 
-local function r(mod, crop, seed)
+local function r(mod, crop, seed, product)
     return {
         mod = mod,
         crop = crop,
         seed = seed,
+        product = product,
     }
 end
 
@@ -18,7 +19,7 @@ Harvest = {
 }
 
 Replace = {
-    r("magicalcrops", "MinicioCrop", "MinicioSeeds"),
+    r("magicalcrops", "MinicioCrop", "MinicioSeeds", "1MinicioEssence"),
 }
 
 Fuel = {
@@ -67,6 +68,7 @@ end
 local function harvest(mod, crop)
     for _, rep in pairs(Replace) do
         if rep.mod == mod and rep.crop == crop then
+            findItem(mod, rep.product)
             turtle.digDown()
             if findItem(mod, rep.seed) then
                 turtle.placeDown()
