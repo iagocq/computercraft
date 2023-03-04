@@ -42,6 +42,8 @@ VelocityX = 1
 
 Resetting = false
 
+LoopWait = 10 * 60
+
 local function splitName(fullname)
     local s, e = string.find(fullname, ":")
     return string.sub(fullname, 1, s-1), string.sub(fullname, s+1)
@@ -171,6 +173,10 @@ local function step()
     end
 end
 
+local function wait()
+    sleep(LoopWait)
+end
+
 local function resetStep()
     if Movement.x ~= 0 then
         turtle.forward()
@@ -189,25 +195,22 @@ local function resetStep()
             turtle.turnRight()
             VelocityX = 1
             Resetting = false
+            wait()
         end
     end
 end
 
-function loop()
-    while true do
-        if not Resetting then
-            farm()
-        end
+while true do
+    if not Resetting then
+        farm()
+    end
 
-        refuel()
-        replenishLava()
+    refuel()
+    replenishLava()
 
-        if Resetting then
-            resetStep()
-        else
-            step()
-        end
+    if Resetting then
+        resetStep()
+    else
+        step()
     end
 end
-
-loop()
