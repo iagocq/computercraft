@@ -93,8 +93,8 @@ local function harvest(mod, crop)
 end
 
 local function farm()
-    local data = turtle.inspectDown()
-    if not data then return false end
+    local ok, data = turtle.inspectDown()
+    if not ok then return false end
 
     local name = data.name
     local growth = data.metadata
@@ -155,33 +155,33 @@ end
 function step()
     turtle.forward()
     Movement.x = Movement.x + VelocityX
-    local data = turtle.inspectDown()
-    if not data then return false end
+    local ok, data = turtle.inspectDown()
+    if not ok then return false end
 
-    if data.name == Turn.left then
-        turtle.turnLeft()
-        turtle.forward()
-        turtle.turnLeft()
-        turtle.forward()
-        Movement.z = Movement.z + 1
-    elseif data.name == Turn.right then
-        turtle.turnRight()
-        turtle.forward()
-        turtle.turnRight()
-        turtle.forward()
-        Movement.z = Movement.z + 1
-    elseif data.name == Turn.reset then
+    if data.name == Turn.reset then
         turtle.turnLeft()
         turtle.turnLeft()
         Resetting = true
+        VelocityX = -VelocityX
+    else
+        if data.name == Turn.left then
+            turtle.turnLeft()
+            turtle.forward()
+            turtle.turnLeft()
+        elseif data.name == Turn.right then
+            turtle.turnRight()
+            turtle.forward()
+            turtle.turnRight()
+        end
+        Movement.z = Movement.z + 1
         VelocityX = -VelocityX
     end
 end
 
 function resetStep()
-    if Movement.x > 0 then
+    if Movement.x ~= 0 then
         turtle.forward()
-        Movement.x = Movement.x - 1
+        Movement.x = Movement.x + VelocityX
         if Movement.x == 0 then
             if VelocityX == 1 then
                 turtle.turnLeft()
@@ -189,15 +189,12 @@ function resetStep()
                 turtle.turnRight()
             end
         end
-    elseif Movement.z > 0 then
+    elseif Movement.z ~= 0 then
         turtle.forward()
         Movement.z = Movement.z - 1
         if Movement.z == 0 then
-            if VelocityX == 1 then
-                turtle.turnLeft()
-            else
-                turtle.turnRight()
-            end
+            turtle.turnRight()
+            VelocityX = 1
             Resetting = false
         end
     end
@@ -218,3 +215,5 @@ function loop()
         end
     end
 end
+
+loop()
