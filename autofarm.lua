@@ -13,14 +13,6 @@ local function r(mod, crop, seed)
     }
 end
 
-local function f(mod, item, fuel)
-    return {
-        mod = mod,
-        item = item,
-        fuel = fuel
-    }
-end
-
 Harvest = {
     h("magicalcrops", 7)
 }
@@ -30,13 +22,8 @@ Replace = {
 }
 
 Fuel = {
-    f("minecraft", "coal", 80),
-    f("minecraft", "lava_bucket", 1000)
-}
-
-RefillChest = {
-    mod = "EnderStorage",
-    item = "enderChest"
+    bucket = 1,
+    chest = 2
 }
 
 Turn = {
@@ -114,11 +101,10 @@ local function refuel()
     local max = turtle.getFuelLimit()
     local current = turtle.getFuelLevel()
 
-    for _, f in pairs(Fuel) do
-        local newfuel = current + f.fuel
-        if newfuel <= max and findItem(f.mod, f.item) then
-            return turtle.refuel()
-        end
+    local newfuel = current + 1000
+    if newfuel <= max then
+        turtle.select(Fuel.bucket)
+        return turtle.refuel()
     end
 
     return false
@@ -133,22 +119,19 @@ local function replenishLava()
         return false
     end
 
-    if findItem("minecraft", "bucket") then
-        local bucket = turtle.getSelectedSlot()
-        if findItem(RefillChest.mod, RefillChest.item) then
-            local chest = turtle.getSelectedSlot()
-            turtle.placeUp()
+    turtle.select(Fuel.bucket)
+    if not holdingLavaBucket() then
+        turtle.select(Fuel.chest)
+        turtle.placeUp()
 
-            turtle.select(bucket)
-            while not holdingLavaBucket() do
-                turtle.dropUp()
-                sleep(1)
-                turtle.suckDown()
-            end
-
-            turtle.select(chest)
-            turtle.digUp()
+        turtle.select(Fuel.bucket)
+        while not holdingLavaBucket() do
+            turtle.dropUp()
+            sleep(1)
+            turtle.suckUp()
         end
+
+        turtle.digUp()
     end
 end
 
@@ -158,27 +141,27 @@ function step()
     local ok, data = turtle.inspectDown()
     if not ok then return false end
 
-    if data.name == Turn.reset then
+    if data.name == Turn.left then
+        turtle.turnLeft()
+        turtle.forward()
+        turtle.turnLeft()
+        Movement.z = Movement.z + 1
+        VelocityX = -VelocityX
+    elseif data.name == Turn.right then
+        turtle.turnRight()
+        turtle.forward()
+        turtle.turnRight()
+        Movement.z = Movement.z + 1
+        VelocityX = -VelocityX
+    elseif data.name == Turn.reset then
         turtle.turnLeft()
         turtle.turnLeft()
         Resetting = true
         VelocityX = -VelocityX
-    else
-        if data.name == Turn.left then
-            turtle.turnLeft()
-            turtle.forward()
-            turtle.turnLeft()
-        elseif data.name == Turn.right then
-            turtle.turnRight()
-            turtle.forward()
-            turtle.turnRight()
-        end
-        Movement.z = Movement.z + 1
-        VelocityX = -VelocityX
     end
 end
 
-function resetStep()
+local function resetStep()
     if Movement.x ~= 0 then
         turtle.forward()
         Movement.x = Movement.x + VelocityX
@@ -205,6 +188,7 @@ function loop()
         if not Resetting then
             farm()
         end
+
         refuel()
         replenishLava()
 
